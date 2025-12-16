@@ -1,3 +1,10 @@
+# **Demo Video**
+
+https://github.com/user-attachments/assets/a3c78ab9-91b2-4116-b583-703bcd020fcc
+
+
+
+
 # Bengali RAG Chatbot API
 
 A FastAPI-based chatbot that answers questions in Bengali using Retrieval-Augmented Generation (RAG).
