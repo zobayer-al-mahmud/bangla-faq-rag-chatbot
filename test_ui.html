@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>বাংলা RAG Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans Bengali', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: #e0e0e0;
+        }
+
+        .container {
+            background: #1a1a1a;
+            border-radius: 16px;
+            border: 1px solid #2a2a2a;
+            max-width: 900px;
+            width: 100%;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .header {
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            padding: 24px 32px;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.875rem;
+            color: #888888;
+            font-weight: 400;
+        }
+
+        .chat-area {
+            padding: 32px;
+            max-height: 500px;
+            overflow-y: auto;
+            background: #0f0f0f;
+        }
+
+        .chat-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: #333333;
+            border-radius: 3px;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb:hover {
+            background: #444444;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            padding: 16px 20px;
+            border-radius: 12px;
+            animation: fadeIn 0.3s ease-in;
+            line-height: 1.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question {
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            text-align: right;
+            margin-left: 80px;
+        }
+
+        .answer {
+            background: #1a1a1a;
+            border: 1px solid #2a2a2a;
+            border-left: 2px solid #4a9eff;
+            margin-right: 80px;
+        }
+
+        .category {
+            font-size: 0.75rem;
+            color: #666666;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .input-area {
+            padding: 24px 32px;
+            background: #1a1a1a;
+            border-top: 1px solid #2a2a2a;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 14px 18px;
+            background: #0f0f0f;
+            border: 1px solid #2a2a2a;
+            border-radius: 10px;
+            font-size: 15px;
+            color: #e0e0e0;
+            font-family: 'Noto Sans Bengali', 'Segoe UI', sans-serif;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background: #141414;
+        }
+
+        input[type="text"]::placeholder {
+            color: #555555;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: #4a9eff;
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #3d8eef;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            text-align: center;
+            color: #4a9eff;
+            font-weight: 500;
+            padding: 12px;
+            font-size: 0.9rem;
+        }
+
+        .example-questions {
+            margin-top: 16px;
+            padding: 16px;
+            background: #0f0f0f;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .example-questions h3 {
+            font-size: 0.8rem;
+            color: #666666;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .example-btn {
+            display: inline-block;
+            margin: 6px 6px 6px 0;
+            padding: 8px 14px;
+            background: #1e1e1e;
+            border: 1px solid #2a2a2a;
+            border-radius: 8px;
+            font-size: 0.825rem;
+            color: #b0b0b0;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .example-btn:hover {
+            background: #252525;
+            border-color: #4a9eff;
+            color: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>বাংলা RAG Chatbot</h1>
+            <p>শিক্ষা, স্বাস্থ্য, ভ্রমণ, প্রযুক্তি এবং খেলাধুলা সম্পর্কে জিজ্ঞাসা করুন</p>
+        </div>
+
+        <div class="chat-area" id="chatArea">
+            <div class="message answer">
+                <div class="category">সহকারী</div>
+                <div>আসসালামু আলাইকুম! আমি আপনার বাংলা সহকারী। আপনি আমাকে শিক্ষা, স্বাস্থ্য, ভ্রমণ, প্রযুক্তি বা খেলাধুলা সম্পর্কে যেকোনো প্রশ্ন করতে পারেন।</div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="input-group">
+                <input 
+                    type="text" 
+                    id="questionInput" 
+                    placeholder="আপনার প্রশ্ন লিখুন..."
+                    onkeypress="handleKeyPress(event)"
+                >
+                <button onclick="sendQuestion()" id="sendBtn">পাঠান</button>
+            </div>
+
+            <div class="example-questions">
+                <h3>উদাহরণ প্রশ্ন:</h3>
+                <span class="example-btn" onclick="setQuestion('শিক্ষা একটি দেশের উন্নয়নে কেন গুরুত্বপূর্ণ?')">শিক্ষার গুরুত্ব</span>
+                <span class="example-btn" onclick="setQuestion('সুস্থ থাকার জন্য কী করা উচিত?')">সুস্থ জীবন</span>
+                <span class="example-btn" onclick="setQuestion('ভ্রমণের আগে কী পরিকল্পনা করা দরকার?')">ভ্রমণ পরিকল্পনা</span>
+                <span class="example-btn" onclick="setQuestion('কৃত্রিম বুদ্ধিমত্তা কী?')">AI কী?</span>
+                <span class="example-btn" onclick="setQuestion('খেলাধুলার উপকারিতা কী?')">খেলাধুলা</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8000';
+
+        function addMessage(type, content, category = null) {
+            const chatArea = document.getElementById('chatArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            if (category) {
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = 'category';
+                categoryDiv.textContent = category;
+                messageDiv.appendChild(categoryDiv);
+            }
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.textContent = content;
+            messageDiv.appendChild(contentDiv);
+            
+            chatArea.appendChild(messageDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function showLoading() {
+            const chatArea = document.getElementById('chatArea');
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading';
+            loadingDiv.id = 'loadingIndicator';
+            loadingDiv.textContent = '⏳ উত্তর খুঁজছি...';
+            chatArea.appendChild(loadingDiv);
+            chatArea.scrollTop = chatArea.scrollHeight;
+        }
+
+        function hideLoading() {
+            const loadingDiv = document.getElementById('loadingIndicator');
+            if (loadingDiv) {
+                loadingDiv.remove();
+            }
+        }
+
+        async function sendQuestion() {
+            const input = document.getElementById('questionInput');
+            const question = input.value.trim();
+            
+            if (!question) {
+                alert('অনুগ্রহ করে একটি প্রশ্ন লিখুন');
+                return;
+            }
+
+            // Disable input
+            const sendBtn = document.getElementById('sendBtn');
+            input.disabled = true;
+            sendBtn.disabled = true;
+
+            // Add question to chat
+            addMessage('question', question);
+            input.value = '';
+
+            // Show loading
+            showLoading();
+
+            try {
+                const response = await fetch(`${API_URL}/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+
+                hideLoading();
+
+                if (response.ok) {
+                    const data = await response.json();
+                    addMessage('answer', data.answer, data.category);
+                } else {
+                    const error = await response.text();
+                    addMessage('answer', `❌ ত্রুটি: ${error}`, 'error');
+                }
+            } catch (error) {
+                hideLoading();
+                addMessage('answer', `❌ সার্ভার সংযোগে সমস্যা: ${error.message}`, 'error');
+            }
+
+            // Re-enable input
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }
+
+        function setQuestion(text) {
+            document.getElementById('questionInput').value = text;
+            document.getElementById('questionInput').focus();
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendQuestion();
+            }
+        }
+
+        // Focus input on load
+        window.onload = function() {
+            document.getElementById('questionInput').focus();
+        };
+    </script>
+</body>
+</html>
