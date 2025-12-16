@@ -1,8 +1,6 @@
 # **Demo Video**
 
-https://github.com/user-attachments/assets/a3c78ab9-91b2-4116-b583-703bcd020fcc
-
-
+https://github.com/user-attachments/assets/17409e17-67d8-4d81-95ed-67a141bafff1
 
 
 # Bengali RAG Chatbot
