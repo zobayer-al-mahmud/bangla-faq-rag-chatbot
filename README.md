@@ -12,10 +12,13 @@ A FastAPI-based chatbot that answers questions in Bengali using Retrieval-Augmen
 ## Features
 
 - **Bengali Language Support**: Handles Bengali questions and provides Bengali answers
+- **Voice Input/Output (STT/TTS)**: Speak your questions and hear answers in Bengali
 - **Multiple Categories**: Supports education, health, travel, technology, and sports topics
 - **Intelligent Routing**: Automatically detects question category using LLM
 - **RAG Architecture**: Uses FAISS vector store for semantic search
+- **Strict Context-Only Responses**: Answers only from provided knowledge chunks, no LLM hallucinations
 - **REST API**: Simple HTTP endpoints for easy integration
+- **Interactive Web UI**: Clean, modern interface with voice capabilities
 
 ## Installation
 
@@ -91,6 +94,20 @@ POST /chat
 }
 ```
 
+### 4. Text-to-Speech Endpoint
+```
+POST /tts
+```
+
+**Request Body**:
+```json
+{
+  "question": "শিক্ষা মানুষের জ্ঞান বৃদ্ধি করে।"
+}
+```
+
+**Response**: Audio stream (audio/mpeg)
+
 ## Testing the API
 
 ### Using cURL
@@ -120,6 +137,18 @@ print(response.json())
 Once the server is running, visit:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+- **Web UI with Voice**: Open `test_ui.html` in your browser
+
+## Using the Web Interface
+
+1. Open `test_ui.html` in your browser
+2. **Text Input**: Type your question and click "পাঠান"
+3. **Voice Input**: Click 🎤 microphone button and speak your question in Bengali
+4. **Voice Output**: Click 🔊 শুনুন on any answer to hear it spoken
+
+**Browser Requirements**:
+- Voice Input (STT): Chrome, Edge, or Safari (with Bengali language support)
+- Voice Output (TTS): All modern browsers
 
 ## Supported Categories
 
@@ -144,6 +173,8 @@ Once the server is running, visit:
 3. **LLM**: OpenAI GPT-4.1-nano (via GitHub Models)
 4. **Framework**: FastAPI with async support
 5. **Category Detection**: LLM-based intelligent routing
+6. **Text-to-Speech**: gTTS (Google Text-to-Speech) for Bengali audio generation
+7. **Speech-to-Text**: Web Speech API for browser-based voice input
 
 ## Environment Variables
 
@@ -159,6 +190,9 @@ Get your GitHub token from: https://github.com/settings/tokens
 
 ## Notes
 
+- **Strict Context-Only**: Chatbot responds only from provided knowledge chunks, preventing hallucinations
 - First request may be slow due to model loading
 - The embedding model downloads on first run (~500MB)
 - Supports CORS for web browser requests
+- Voice features require HTTPS in production (or localhost for development)
+- Bengali voice input works best in Chrome/Edge with clear pronunciation

@@ -7,6 +7,10 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
 from openai import OpenAI
 from dotenv import load_dotenv
+from gtts import gTTS
+import base64
+from io import BytesIO
+from fastapi.responses import StreamingResponse
 
 # Load environment variables from .env file
 load_dotenv()
@@ -86,7 +90,7 @@ technology_chunks = [
     ("কৃত্রিম বুদ্ধিমত্তা (Artificial Intelligence বা AI) হলো এমন একটি প্রযুক্তি, যার মাধ্যমে কম্পিউটার বা মেশিন মানুষের মতো চিন্তা করা, শেখা, সিদ্ধান্ত নেওয়া এবং সমস্যা সমাধান করতে পারে।", {"category": "technology"}),
     ("ক্লাউড কম্পিউটিং ব্যবহারকারীদের অনলাইনে ডেটা সংরক্ষণ ও অ্যাক্সেস করার সুবিধা দেয়।", {"category": "technology"}),
     ("সাইবার নিরাপত্তা ডিজিটাল তথ্য ও ব্যক্তিগত ডেটা সুরক্ষার জন্য অত্যন্ত গুরুত্বপূর্ণ।", {"category": "technology"}),
-    ("প্রযুক্তি শিক্ষা, স্বাস্থ্য ও ব্যবসা খাতে নতুন সম্ভাবনা সৃষ্টি করেছে।", {"category": "technology"}),
+    ("প্রযুক্তি শিক্ষা, স্বাস্থ্য ও ব্যবসা খাতে নতুন সম্ভাবনা সৃষ্টি করেছে।", {"category": "technology"}), 
     ("ডিজিটাল প্রযুক্তি তথ্য সংরক্ষণ ও বিশ্লেষণকে সহজ করেছে।", {"category": "technology"}),
     ("স্বয়ংক্রিয় প্রযুক্তি মানুষের সময় ও শ্রম সাশ্রয় করে।", {"category": "technology"}),
     ("প্রযুক্তির অপব্যবহার ব্যক্তিগত গোপনীয়তার ঝুঁকি বাড়াতে পারে।", {"category": "technology"}),
@@ -265,6 +269,32 @@ async def chat_endpoint(request: ChatRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@app.post("/tts")
+async def text_to_speech(request: ChatRequest):
+    """
+    Text-to-Speech endpoint that converts Bengali text to audio
+    
+    Example request:
+    {
+        "question": "শিক্ষা মানুষের জ্ঞান বৃদ্ধি করে।"
+    }
+    """
+    if not request.question or request.question.strip() == "":
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    
+    try:
+        # Generate speech from text
+        tts = gTTS(text=request.question, lang='bn', slow=False)
+        
+        # Save to BytesIO object
+        audio_buffer = BytesIO()
+        tts.write_to_fp(audio_buffer)
+        audio_buffer.seek(0)
+        
+        return StreamingResponse(audio_buffer, media_type="audio/mpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS error: {str(e)}")
 
 if __name__ == "__main__":
     import uvicorn
